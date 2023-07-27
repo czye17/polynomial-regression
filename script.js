@@ -35,7 +35,6 @@ function calculatePolynomialRegression() {
 }
 
 
-
 // Function to plot a polynomial regression on the canvas given the coefficients
 function plotPolynomialRegression(coefficients) {
   if (!coefficients || coefficients.length !== degree + 1) {
@@ -46,8 +45,8 @@ function plotPolynomialRegression(coefficients) {
   const canvasHeight = canvas.height;
 
   // Calculate the start and end points of the polynomial regression line to reach the ends of the canvas
-  const minX = 0 //Math.min(...dataPoints.map((point) => point.x));
-  const maxX = 600// Math.max(...dataPoints.map((point) => point.x));
+  const minX = 0;
+  const maxX = canvasWidth;
   const step = (maxX - minX) / canvasWidth;
 
   ctx.strokeStyle = 'green';
@@ -55,7 +54,7 @@ function plotPolynomialRegression(coefficients) {
   for (let x = minX; x <= maxX; x += step) {
     const y = coefficients.reduce((acc, coef, index) => acc + coef * Math.pow(x, index), 0);
     const canvasX = x;
-    const canvasY = y; // Invert the y-coordinate for the canvas
+    const canvasY = canvasHeight - y; // Invert the y-coordinate for the canvas
     if (x === minX) {
       ctx.moveTo(canvasX, canvasY);
     } else {
@@ -66,66 +65,75 @@ function plotPolynomialRegression(coefficients) {
   ctx.closePath();
 }
 
+// Function to draw axis labels and ticks
+function drawAxisLabelsAndTicks() {
+  const canvas = document.getElementById('plotCanvas');
+  const ctx = canvas.getContext('2d');
+  const canvasWidth = canvas.width;
+  const canvasHeight = canvas.height;
 
-// Function to handle adding a new data point
-function handleAddDataPoint() {
-  const xInput = document.getElementById('xInput');
-  const yInput = document.getElementById('yInput');
-  const x = parseFloat(xInput.value);
-  const y = parseFloat(yInput.value);
-  if (!isNaN(x) && !isNaN(y)) {
-    dataPoints.push({ x, y });
-    xInput.value = '';
-    yInput.value = '';
-    updatePlot();
+  const minX = 0; // X-axis starts at 0
+  const maxX = canvasWidth;
+  const minY = 0; // Y-axis starts at 0
+  const maxY = canvasHeight;
+
+  // Draw X-axis labels and ticks
+  const xTicksCount = 10;
+  const xTickInterval = (maxX - minX) / xTicksCount;
+  for (let i = 0; i <= xTicksCount; i++) {
+    const xValue = i * xTickInterval;
+    const xPixel = xValue; // Leave some space for labels
+    ctx.beginPath();
+    ctx.moveTo(xPixel, canvasHeight - 5);
+    ctx.lineTo(xPixel, canvasHeight + 5);
+    ctx.stroke();
+    ctx.fillStyle = 'black';
+    ctx.fillText(xValue.toFixed(0), xPixel + 5, canvasHeight - 5);
+  }
+
+  // Draw Y-axis labels and ticks
+  const yTicksCount = 8;
+  const yTickInterval = maxY / yTicksCount;
+  for (let i = 0; i <= yTicksCount; i++) {
+    const yValue = i * yTickInterval;
+    const yPixel = canvasHeight - yValue; // Leave some space for labels
+    ctx.beginPath();
+    ctx.moveTo(0, yPixel);
+    ctx.lineTo(5, yPixel);
+    ctx.stroke();
+    ctx.fillStyle = 'black';
+    ctx.fillText(yValue.toFixed(0), 5, yPixel - 5); // Adjust the y position for better visibility
   }
 }
 
-
-// ... (other functions remain the same) ...
-
-// Function to update the plot with data points and regression line
+// Function to update the plot
 function updatePlot() {
   const canvas = document.getElementById('plotCanvas');
+  const canvasHeight = canvas.height;
   const ctx = canvas.getContext('2d');
 
-  // Clear the canvas
+  // Clear canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Draw the x and y axes
-  const xAxisPosition = canvas.height - 10; // Leave some padding at the bottom
-  const yAxisPosition = 10; // Leave some padding at the top
-  const minX = 0;
-  const maxX = 600;
-  const minY = 0;
-  const maxY = 400;
-
-
-
+  // Draw axis labels and ticks
+  drawAxisLabelsAndTicks();
 
   // Draw data points
-  for (const point of dataPoints) {
+  dataPoints.forEach((point) => {
     const canvasX = point.x;
-    const canvasY = point.y;
-    //const canvasX = yAxisPosition + (point.x / (maxX - minX)) * canvas.width;
-    //const canvasY = canvas.height - ((point.y - minY) / (maxY - minY)) * canvas.height;
+    const canvasY = canvasHeight - point.y;
     ctx.fillStyle = 'blue';
     ctx.beginPath();
     ctx.arc(canvasX, canvasY, 5, 0, Math.PI * 2);
     ctx.fill();
     ctx.closePath();
-  }
+  });
 
-  // If we have valid coefficients from multivariate regression, plot regression line
+  // Draw regression line (if available)
   if (regressionCoefficients) {
-    //const degree = regressionCoefficients.length - 1;
     plotPolynomialRegression(regressionCoefficients);
   }
 }
-
-// Rest of the code remains the same...
-
-
 
 // Function to update the coefficients display
 function updateCoefficientsDisplay(coefficients) {
@@ -155,13 +163,12 @@ function handlePolynomialRegression() {
 // Add event listener for polynomial regression button click
 document.getElementById('runPolynomialBtn').addEventListener('click', handlePolynomialRegression);
 
-
 // Function to handle user clicks on the canvas
 function handleCanvasClick(event) {
   // Get the mouse coordinates relative to the canvas
   const rect = canvas.getBoundingClientRect();
   const mouseX = event.clientX - rect.left;
-  const mouseY = event.clientY - rect.top;
+  const mouseY = rect.bottom - event.clientY;
 
   // Add the clicked point to the 'dataPoints' array
   dataPoints.push({ x: mouseX, y: mouseY });
