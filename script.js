@@ -49,6 +49,7 @@ function plotPolynomialRegression(coefficients) {
   const maxX = canvasWidth;
   const step = (maxX - minX) / canvasWidth;
 
+  ctx.lineWidth = 1.2;
   ctx.strokeStyle = 'green';
   ctx.beginPath();
   for (let x = minX; x <= maxX; x += step) {
@@ -80,29 +81,42 @@ function drawAxisLabelsAndTicks() {
   // Draw X-axis labels and ticks
   const xTicksCount = 10;
   const xTickInterval = (maxX - minX) / xTicksCount;
-  for (let i = 0; i <= xTicksCount; i++) {
+  for (let i = 1; i <= xTicksCount; i++) {
     const xValue = i * xTickInterval;
     const xPixel = xValue; // Leave some space for labels
     ctx.beginPath();
-    ctx.moveTo(xPixel, canvasHeight - 5);
-    ctx.lineTo(xPixel, canvasHeight + 5);
+    if (i === 5) {
+      ctx.lineWidth = 1;
+    } else {
+      ctx.lineWidth = 0.5;
+    }
+    ctx.strokeStyle = "gray";
+    ctx.moveTo(xPixel, 0);
+    ctx.lineTo(xPixel, parseInt(canvasHeight));
     ctx.stroke();
     ctx.fillStyle = 'black';
-    ctx.fillText(xValue.toFixed(0), xPixel + 5, canvasHeight - 5);
+    ctx.fillText(-10 + 2*i, xPixel + 5, parseInt(canvasHeight) - 5);
   }
 
   // Draw Y-axis labels and ticks
   const yTicksCount = 8;
   const yTickInterval = maxY / yTicksCount;
-  for (let i = 0; i <= yTicksCount; i++) {
+  for (let i = 1; i <= yTicksCount; i++) {
     const yValue = i * yTickInterval;
     const yPixel = canvasHeight - yValue; // Leave some space for labels
     ctx.beginPath();
+    ctx.beginPath();
+    if (i === 4) {
+      ctx.lineWidth = 1;
+    } else {
+      ctx.lineWidth = 0.5;
+    }
+    ctx.strokeStyle = "gray";
     ctx.moveTo(0, yPixel);
-    ctx.lineTo(5, yPixel);
+    ctx.lineTo(canvasWidth, yPixel);
     ctx.stroke();
     ctx.fillStyle = 'black';
-    ctx.fillText(yValue.toFixed(0), 5, yPixel - 5); // Adjust the y position for better visibility
+    ctx.fillText(2 * i - 8, 5, yPixel - 5); // Adjust the y position for better visibility
   }
 }
 
@@ -139,17 +153,16 @@ function updatePlot() {
 function updateCoefficientsDisplay(coefficients) {
   if (coefficients) {
     const coefficientsValue = document.getElementById('coefficientsValue');
-    //const degree = coefficients.length - 1;
-    const coefficientsString = coefficients
-      .map((coeff, index) => `Coefficient for x^${index}: ${math.round(coeff)}`)
-      .join('<br>');
     const equationString = coefficients
-      .map((coeff, index) => `${math.round(coeff)} x^${index}`)
-      .join(' + ');
-    
-    coefficientsValue.innerHTML = `Degree: ${degree}<br>${coefficientsString}<br><br>y = ${equationString}`;
+      .map((coeff, index) => `${math.round(coeff)}x^${index}`)
+      .join('+');
+
+    coefficientsValue.innerHTML = `$$y = ${equationString}$$`;
+    MathJax.typeset();
   }
 }
+
+
 
 // Function to handle polynomial regression button click
 function handlePolynomialRegression() {
@@ -187,6 +200,7 @@ canvas.addEventListener('click', handleCanvasClick);
 function init() {
   // Implement canvas setup and other initializations here
   // This function will be called when the page loads.
+  drawAxisLabelsAndTicks();
 }
 
 // Call the initialization function when the page loads
