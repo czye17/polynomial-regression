@@ -133,9 +133,13 @@ function updateCoefficientsDisplay(coefficients) {
     const coefficientsValue = document.getElementById('coefficientsValue');
     //const degree = coefficients.length - 1;
     const coefficientsString = coefficients
-      .map((coefficients, index) => `Coefficient for x^${index}: ${coefficients}`)
+      .map((coeff, index) => `Coefficient for x^${index}: ${math.round(coeff)}`)
       .join('<br>');
-    coefficientsValue.innerHTML = `Degree: ${degree}<br>${coefficientsString}`;
+    const equationString = coefficients
+      .map((coeff, index) => `${math.round(coeff)} x^${index}`)
+      .join(' + ');
+    
+    coefficientsValue.innerHTML = `Degree: ${degree}<br>${coefficientsString}<br><br>y = ${equationString}`;
   }
 }
 
