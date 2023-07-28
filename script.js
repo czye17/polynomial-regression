@@ -4,6 +4,9 @@ let regressionLine = null; // Store the regression line coordinates
 let regressionCoefficients = null; // Store the regression coefficients
 let degree =1;
 
+const xRange = 20;
+const yRange = 16;
+
 // Get canvas element and context
 const canvas = document.getElementById('plotCanvas');
 const ctx = canvas.getContext('2d');
@@ -45,8 +48,8 @@ function plotPolynomialRegression(coefficients) {
   const canvasHeight = canvas.height;
 
   // Calculate the start and end points of the polynomial regression line to reach the ends of the canvas
-  const minX = 0;
-  const maxX = canvasWidth;
+  const minX = - xRange / 2;
+  const maxX = xRange / 2;
   const step = (maxX - minX) / canvasWidth;
 
   ctx.lineWidth = 1.2;
@@ -54,8 +57,8 @@ function plotPolynomialRegression(coefficients) {
   ctx.beginPath();
   for (let x = minX; x <= maxX; x += step) {
     const y = coefficients.reduce((acc, coef, index) => acc + coef * Math.pow(x, index), 0);
-    const canvasX = x;
-    const canvasY = canvasHeight - y; // Invert the y-coordinate for the canvas
+    const canvasX = xValueToPixel(x);
+    const canvasY = canvasHeight - yValueToPixel(y); // Invert the y-coordinate for the canvas
     if (x === minX) {
       ctx.moveTo(canvasX, canvasY);
     } else {
@@ -79,7 +82,7 @@ function drawAxisLabelsAndTicks() {
   const maxY = canvasHeight;
 
   // Draw X-axis labels and ticks
-  const xTicksCount = 10;
+  const xTicksCount = xRange / 2;
   const xTickInterval = (maxX - minX) / xTicksCount;
   for (let i = 1; i <= xTicksCount; i++) {
     const xValue = i * xTickInterval;
@@ -95,11 +98,11 @@ function drawAxisLabelsAndTicks() {
     ctx.lineTo(xPixel, parseInt(canvasHeight));
     ctx.stroke();
     ctx.fillStyle = 'black';
-    ctx.fillText(-10 + 2*i, xPixel + 5, parseInt(canvasHeight) - 5);
+    ctx.fillText(- xTicksCount + 2*i, xPixel + 5, parseInt(canvasHeight) - 5);
   }
 
   // Draw Y-axis labels and ticks
-  const yTicksCount = 8;
+  const yTicksCount = yRange / 2;
   const yTickInterval = maxY / yTicksCount;
   for (let i = 1; i <= yTicksCount; i++) {
     const yValue = i * yTickInterval;
@@ -116,7 +119,7 @@ function drawAxisLabelsAndTicks() {
     ctx.lineTo(canvasWidth, yPixel);
     ctx.stroke();
     ctx.fillStyle = 'black';
-    ctx.fillText(2 * i - 8, 5, yPixel - 5); // Adjust the y position for better visibility
+    ctx.fillText(2 * i - yTicksCount, 5, yPixel - 5); // Adjust the y position for better visibility
   }
 }
 
@@ -134,8 +137,8 @@ function updatePlot() {
 
   // Draw data points
   dataPoints.forEach((point) => {
-    const canvasX = point.x;
-    const canvasY = canvasHeight - point.y;
+    const canvasX = xValueToPixel(point.x);
+    const canvasY = canvasHeight - yValueToPixel(point.y);
     ctx.fillStyle = 'blue';
     ctx.beginPath();
     ctx.arc(canvasX, canvasY, 5, 0, Math.PI * 2);
@@ -149,20 +152,59 @@ function updatePlot() {
   }
 }
 
+function xPixelToValue(x) {
+  const canvas = document.getElementById('plotCanvas');
+  const canvasWidth = canvas.width;
+  
+  return (x - (canvasWidth / 2)) / (canvasWidth / xRange);
+}
+
+function yPixelToValue(y) {
+  const canvas = document.getElementById('plotCanvas');
+  const canvasHeight = canvas.height;
+  
+  return (y - (canvasHeight / 2)) / (canvasHeight / yRange);
+}
+
+function xValueToPixel(x) {
+  const canvas = document.getElementById('plotCanvas');
+  const canvasWidth = canvas.width;
+  
+  return ((canvasWidth / xRange) * x) + (canvasWidth / 2);
+}
+
+function yValueToPixel(y) {
+  const canvas = document.getElementById('plotCanvas');
+  const canvasHeight = canvas.height;
+
+  return ((canvasHeight / yRange) * y) + (canvasHeight / 2);
+}
+
+function displayCoefficient(coeff, index) {
+  let roundCoeff = math.round(coeff * 1000) / 1000;
+  if (index === 0) {
+    return `${roundCoeff}`;
+  } else if (index === 1) {
+    let sign = coeff >= 0 ? `+` : ``;
+    return `${sign}${roundCoeff}x`;
+  } else {
+    let sign = coeff >= 0 ? `+` : ``;
+    return `${sign}${roundCoeff}x^${index}`;
+  }
+}
+
 // Function to update the coefficients display
 function updateCoefficientsDisplay(coefficients) {
   if (coefficients) {
     const coefficientsValue = document.getElementById('coefficientsValue');
     const equationString = coefficients
-      .map((coeff, index) => `${math.round(coeff)}x^${index}`)
-      .join('+');
+      .map((coeff, index) => displayCoefficient(coeff, index))
+      .join('');
 
     coefficientsValue.innerHTML = `$$y = ${equationString}$$`;
     MathJax.typeset();
   }
 }
-
-
 
 // Function to handle polynomial regression button click
 function handlePolynomialRegression() {
@@ -184,7 +226,7 @@ function handleCanvasClick(event) {
   const mouseY = rect.bottom - event.clientY;
 
   // Add the clicked point to the 'dataPoints' array
-  dataPoints.push({ x: mouseX, y: mouseY });
+  dataPoints.push({ x: xPixelToValue(mouseX), y: yPixelToValue(mouseY) });
 
   // Recalculate and update the regression line
   calculatePolynomialRegression();
