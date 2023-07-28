@@ -185,11 +185,11 @@ function displayCoefficient(coeff, index) {
   if (index === 0) {
     return `${roundCoeff}`;
   } else if (index === 1) {
-    let sign = coeff >= 0 ? `+` : ``;
+    let sign = roundCoeff >= 0 ? `+` : ``;
     return `${sign}${roundCoeff}x`;
   } else {
-    let sign = coeff >= 0 ? `+` : ``;
-    return `${sign}${roundCoeff}x^${index}`;
+    let sign = roundCoeff >= 0 ? `+` : ``;
+    return `${sign}${roundCoeff}x^{${index}}`;
   }
 }
 
