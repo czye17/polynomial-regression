@@ -180,16 +180,30 @@ function yValueToPixel(y) {
   return ((canvasHeight / yRange) * y) + (canvasHeight / 2);
 }
 
+function floatToLatex(float) {
+  let coeffString = float.toString();
+  if (coeffString.indexOf('e') >= 0) {
+    const [coefficient, exponent] = coeffString.split("e");
+    // Format the LaTeX representation
+    const latexRepresentation = `${coefficient} \\times 10^{${exponent}}`;
+    return latexRepresentation;
+  } else {
+    return coeffString;
+  }
+}
+
 function displayCoefficient(coeff, index) {
-  let roundCoeff = math.round(coeff * 1000) / 1000;
+  let roundCoeff = coeff[0].toPrecision(3);
+  let latexString = floatToLatex(roundCoeff);
+  
   if (index === 0) {
-    return `${roundCoeff}`;
+    return `${latexString}`;
   } else if (index === 1) {
     let sign = roundCoeff >= 0 ? `+` : ``;
-    return `${sign}${roundCoeff}x`;
+    return `${sign}${latexString}x`;
   } else {
     let sign = roundCoeff >= 0 ? `+` : ``;
-    return `${sign}${roundCoeff}x^{${index}}`;
+    return `${sign}${latexString}x^{${index}}`;
   }
 }
 
